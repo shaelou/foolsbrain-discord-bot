@@ -5,3 +5,4 @@ dist/
 build/
 commands.txt
 npm-debug.log
+config.js

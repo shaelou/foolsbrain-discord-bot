@@ -7,7 +7,8 @@
     "babel-node": "babel-node --",
     "build": "./node_modules/.bin/babel src -d build",
     "dist": "./node_modules/.bin/babel src -d dist --presets=babili",
-    "test": "./node_modules/.bin/mocha --compilers js:babel-core/register --reporter spec"
+    "test": "./node_modules/.bin/mocha --compilers js:babel-core/register --reporter spec",
+    "start": "npm run build && node build/index.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +20,7 @@
   },
   "homepage": "https://github.com/shaelou/foolsbrain-discord-bot#readme",
   "dependencies": {
+    "discord.js": "^11.4.2"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

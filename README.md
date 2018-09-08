@@ -6,8 +6,6 @@ Install packages
 Update packages    
 `npm update`    
 
-&nbsp;
-
 ## Scripts
 
 1. `build`    
