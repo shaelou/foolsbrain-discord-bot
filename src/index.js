@@ -22,7 +22,7 @@ client.on('message', (message) => {
   const command = args.shift().toLowerCase();
 
   const guild = message.guild ? message.guild : client.guilds.first();
-  const member = guild.members.find(m => m.user.id == message.author.id);
+  const member = guild.members.find(m => m.user.id === message.author.id);
 
   try {
     switch (command) {
@@ -45,12 +45,12 @@ client.on('message', (message) => {
 
       case commands.roll.name:
         const rolled_number = 1 + Math.floor(Math.random() * 100);
-        message.reply(`rolled a ${rolled_number}`);
+        message.channel.send(`${member} rolled a ${rolled_number}`);
         break;
 
       case commands.roles.name:
-        const roles = guild.roles.map(role => role.name);
-        message.author.send(`roles available are: ${roles.join(', ')}`);
+        const roles = guild.roles.filter(role => role.hexColor === config.game_role_hex_color).map(role => role.name);
+        message.channel.send(`Roles available are: ${roles.join(', ')}`);
         break;
 
       case commands.addrole.name:
@@ -59,15 +59,15 @@ client.on('message', (message) => {
 
         desired_roles_to_join.forEach((desired_role) => {
           // check that role exists
-          const guild_role = guild.roles.find(r => r.name.toLowerCase() === desired_role.toLowerCase());
+          const guild_role = guild.roles.filter(role => role.hexColor === config.game_role_hex_color).find(r => r.name.toLowerCase() === desired_role.toLowerCase());
           if (!guild_role) {
-            message.author.send(`role '${desired_role}' does not exist`);
+            message.channel.send(`The role '${desired_role}' does not exist`);
             return;
           }
 
           // check permissions
           if (member.highestRole.comparePositionTo(guild_role) < 0) {
-            message.author.send(`insufficient permissions for '${guild_role.name}'`);
+            message.channel.send(`${member} has insufficient permissions to add role '${guild_role.name}'`);
             return;
           }
 
@@ -76,9 +76,9 @@ client.on('message', (message) => {
 
         if (roles_to_join.length) {
           member.addRoles(roles_to_join).then(() => {
-            message.author.send(`added role(s): ${roles_to_join.map(role => role.name).join(', ')}`);
+            message.channel.send(`Added ${member} to role(s): ${roles_to_join.map(role => role.name).join(', ')}`);
           }).catch((error) => {
-            message.author.send(`failed to add roles. ${error}`);
+            message.channel.send(`Failed to add roles for ${member}. ${error}`);
           });
         }
 
@@ -90,9 +90,9 @@ client.on('message', (message) => {
 
         desired_roles_to_leave.forEach((desired_role) => {
           // check that role exists
-          const guild_role = guild.roles.find(r => r.name.toLowerCase() === desired_role.toLowerCase());
+          const guild_role = guild.roles.filter(role => role.hexColor === config.game_role_hex_color).find(r => r.name.toLowerCase() === desired_role.toLowerCase());
           if (!guild_role) {
-            message.author.send(`role '${desired_role}' does not exist`);
+            message.channel.send(`The role '${desired_role}' does not exist`);
             return;
           }
 
@@ -101,12 +101,18 @@ client.on('message', (message) => {
 
         if (roles_to_leave.length) {
           member.removeRoles(roles_to_leave).then(() => {
-            message.author.send(`removed roles: ${roles_to_leave.map(role => role.name).join(', ')}`);
+            message.channel.send(`Removed role(s) for ${member}: ${roles_to_leave.map(role => role.name).join(', ')}`);
           }).catch((error) => {
-            message.author.send(`failed to remove roles. ${error}`);
+            message.channel.send(`Failed to remove roles for ${member}. ${error}`);
           });
         }
 
+        break;
+
+      case 'emojis':
+        const games = guild.roles.filter(role => role.hexColor === config.game_role_hex_color).map(role => role.name.toLowerCase());
+        const emojis = guild.emojis.filter(emoji => games.indexOf(emoji.name.toLowerCase()) > -1).map(emoji => emoji.name);
+        message.channel.send(`Available emojis are: ${emojis.join(', ')}`);
         break;
 
       default:
@@ -115,32 +121,112 @@ client.on('message', (message) => {
     }
   }
   catch (e) {
-    console.log(e.stack);
+    console.error(e.stack);
   }
   finally {
     console.log(`${message.author.tag} used '${command}' command`);
   }
 });
 
-client.on('guildMemberAdd', (guild_member) => {
+client.on('messageReactionAdd', (message_reaction, user) => {
   try {
-    const channel = guild_member.guild.channels.find(c => c.name.toLowerCase() === config.default_channel);
-    channel.send(`Welcome to the guild @${guild_member}`);
+    if (user.bot) {
+      return;
+    }
+    
+    const guild = message_reaction.message.guild ? message_reaction.message.guild : client.guilds.first();
+    const member = guild.members.find(m => m.user.id === user.id);
+
+    if (message_reaction.message.content.indexOf("Welcome to the guild") < 0 && message_reaction.message.content.indexOf("-test-") < 0) {
+      return;
+    }
+
+    const game_emoji = guild.emojis.find(emoji => emoji.id === message_reaction.emoji.id);
+    if (!game_emoji) {
+      return;
+    }
+
+    const game_role = guild.roles.find(role => role.hexColor === config.game_role_hex_color && game_emoji.name.toLowerCase() === role.name.toLowerCase());
+    if (!game_role) {
+      return;
+    }
+
+    member.addRole(game_role).then(() => {
+      message_reaction.message.channel.send(`Added ${member} to role ${game_role.name}`);
+    }).catch((error) => {
+      message_reaction.message.channel.send(`Failed to add role ${game_role.name}. ${error}`);
+    });
   }
   catch (e) {
-    console.log(e.stack);
+    console.error(e.stack);
+  }
+});
+
+client.on('messageReactionRemove', (message_reaction, user) => {
+  try {
+    if (user.bot) {
+      return;
+    }
+
+    const guild = message_reaction.message.guild ? message_reaction.message.guild : client.guilds.first();
+    const member = guild.members.find(m => m.user.id === user.id);
+
+    if (message_reaction.message.content.indexOf("Welcome to the guild") < 0 && message_reaction.message.content.indexOf("-test-") < 0) {
+      return;
+    }
+
+    const game_emoji = guild.emojis.find(emoji => emoji.id === message_reaction.emoji.id);
+    if (!game_emoji) {
+      return;
+    }
+
+    const game_role = guild.roles.find(role => role.hexColor === config.game_role_hex_color && game_emoji.name.toLowerCase() === role.name.toLowerCase());
+    if (!game_role) {
+      return;
+    }
+
+    member.removeRole(game_role).then(() => {
+      message_reaction.message.channel.send(`Removed role ${game_role.name} for ${member}`);
+    }).catch((error) => {
+      message_reaction.message.channel.send(`Failed to remove role ${game_role.name} for ${member}. ${error}`);
+    });
+  }
+  catch (e) {
+    console.error(e.stack);
+  }
+});
+
+client.on('guildMemberAdd', (guild_member) => {
+  try {
+    const games = guild_member.guild.roles.filter(role => role.hexColor === config.game_role_hex_color).map(role => role.name.toLowerCase());
+    const emojis = guild_member.guild.emojis.filter(emoji => games.indexOf(emoji.name.toLowerCase()) > -1);
+
+    const channel = guild_member.guild.channels.find(c => c.name.toLowerCase() === config.default_channel);
+    channel.send(`Welcome to the guild ${guild_member}`).then((message) => {
+      emojis.forEach((emoji) => {
+        message.react(emoji);
+      });
+    });
+  }
+  catch (e) {
+    console.error(e.stack);
   }
 });
 
 client.on('presenceUpdate', (old_member, new_member) => {
   try {
-    if ((old_member.presence.status === 'offline' || old_member.presence.status === 'idle') && new_member.presence.status === 'online') {
+    const now = new Date();
+    if (now.getFullYear() === new_member.joinedAt.getFullYear() && now.getMonth() === new_member.joinedAt.getMonth() && now.getDate() === new_member.joinedAt.getDate()) {
+      return;
+    }
+
+    if (old_member.presence.status === 'offline' && new_member.presence.status === 'online') {
       const channel = new_member.guild.channels.find(c => c.name.toLowerCase() === config.default_channel);
       channel.send(`Welcome back from being ${old_member.presence.status} ${new_member}`);
     }
   }
   catch (e) {
-    console.log(e.stack);
+    console.error(e.stack);
   }
 });
 
