@@ -4,7 +4,6 @@ import Commands from './Commands';
 import * as Utils from './Utils';
 import * as Constants from './Constants';
 import * as MessageReactionService from './MessageReactionService';
-import * as PresenceUpdateService from './PresenceUpdateService';
 
 const client = new Discord.Client();
 
@@ -195,15 +194,6 @@ client.on('guildMemberAdd', (guild_member) => {
         message.react(emoji);
       });
     });
-  }
-  catch (e) {
-    console.error(e.stack);
-  }
-});
-
-client.on('presenceUpdate', (old_member, new_member) => {
-  try {
-    PresenceUpdateService.handlePresenceUpdated(old_member, new_member);
   }
   catch (e) {
     console.error(e.stack);
