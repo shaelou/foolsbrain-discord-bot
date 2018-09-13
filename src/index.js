@@ -26,7 +26,7 @@ client.on('message', (message) => {
   const command = args.shift().toLowerCase();
 
   const guild = Utils.getGuildFromMessage(message);
-  const member = Utils.getMemberFromGuildUser(guild, message.author);
+  const member = Utils.getGuildMember(guild, message.author);
 
   try {
     switch (command) {
@@ -114,7 +114,7 @@ client.on('message', (message) => {
         break;
 
       case 'emojis':
-        const emojis = Utils.getGameEmojisFromGuild(guild);
+        const emojis = Utils.getGameEmojis(guild);
         message.channel.send(`Available emojis are: ${emojis.map(emoji => emoji.name).join(', ')}`).catch((error) => {
           console.error(error);
         });
@@ -209,8 +209,8 @@ client.on('messageReactionRemove', (message_reaction, user) => {
 
 client.on('guildMemberAdd', (guild_member) => {
   try {
-    const emojis = Utils.getGameEmojisFromGuild(guild_member.guild);
-    const welcome_channel = Utils.getGuildWelcomeChannelFromGuild(guild_member.guild);
+    const emojis = Utils.getGameEmojis(guild_member.guild);
+    const welcome_channel = Utils.getWelcomeChannel(guild_member.guild);
 
     const welcome_message = new Discord.RichEmbed()
       .setTitle('A new user has joined')
