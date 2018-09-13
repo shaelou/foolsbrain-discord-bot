@@ -11,6 +11,10 @@ const commands = {
         name: 'roll',
         description: 'Roll a random number'
     },
+    ranks: {
+        name: 'ranks',
+        description: 'List ranks available'
+    },
     roles: {
         name: 'roles',
         description: 'List roles available'

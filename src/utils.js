@@ -11,6 +11,15 @@ export const getGameRoles = (guild) => {
 }
 
 /**
+ * Get a collection of rank roles for a guild
+ * @param {Guild} guild 
+ * @returns {Collection<String, Role}
+ */
+export const getRanks = (guild) => {
+    return guild.roles.filter(role => role.hexColor != Config.game_role_hex_color);
+}
+
+/**
  * Get a collection of emojis for game roles of a guild
  * @param {Guild} guild 
  * @returns {Collection<String, Emoji}
@@ -69,4 +78,14 @@ export const getGuildFromMessage = (message) => {
  */
 export const getGuildMember = (guild, user) => {
     return guild.members.find(member => member.user.id === user.id);
+}
+
+/**
+ * 
+ * @param {number} min 
+ * @param {number} max 
+ * @returns {number}
+ */
+export const getRandomInt = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }

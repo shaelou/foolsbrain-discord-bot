@@ -31,30 +31,49 @@ client.on('message', (message) => {
   try {
     switch (command) {
       case Commands.help.name:
-        let help_msg = '';
+        let help_message = new Discord.RichEmbed().setTitle('Help');
+
         for (const key in Commands) {
           if (Commands.hasOwnProperty(key)) {
-            help_msg += `\`\`\`\n${Config.command_prefix}${Commands[key].name}, ${Commands[key].description}\`\`\``;
+            help_message = help_message.addField(`${Config.command_prefix}${Commands[key].name}`, Commands[key].description)
           }
         }
 
-        message.author.send(help_msg);
+        message.author.send(help_message).catch((error) => {
+          console.error(error);
+        });
         break;
 
       case Commands.ping.name:
-        message.channel.send('Pinging...').then((msg) => {
-          msg.edit(`Ping: ${Date.now() - msg.createdTimestamp}ms`);
+        message.channel.send('Pinging...').then((ping_message) => {
+          ping_message.edit(`Ping: ${Date.now() - ping_message.createdTimestamp}ms`);
+        }).catch((error) => {
+          console.error(error);
         });
         break;
 
       case Commands.roll.name:
-        const rolled_number = 1 + Math.floor(Math.random() * 100);
-        message.channel.send(`${member} rolled a ${rolled_number}`);
+        const rolled_number = Utils.getRandomInt(1, 100); // TODO: parse user input min/max
+
+        message.channel.send(`${member} rolled a ${rolled_number}`).catch((error) => {
+          console.error(error);
+        });
+        break;
+
+      case Commands.ranks.name:
+        const ranks = Utils.getRanks(guild);
+        const rank_names = ranks.map(rank => rank.name);
+
+        message.channel.send(`Ranks available are: ${rank_names.join(', ')}`).catch((error) => {
+          console.error(error);
+        });
         break;
 
       case Commands.roles.name:
-        const roles = guild.roles.filter(role => role.hexColor === Config.game_role_hex_color).map(role => role.name);
-        message.channel.send(`Roles available are: ${roles.join(', ')}`);
+        const roles = Utils.getGameRoles(guild);
+        const role_names = roles.map(role => role.name);
+
+        message.channel.send(`Roles available are: ${role_names.join(', ')}`);
         break;
 
       case Commands.addrole.name:
