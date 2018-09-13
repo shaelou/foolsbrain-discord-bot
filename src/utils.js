@@ -1,5 +1,6 @@
-import { Guild, Collection, Role, Emoji, GuildChannel, Message, Client, User } from "discord.js";
-import Config from './config';
+import { Guild, Collection, Role, Emoji, GuildChannel, Message, User, GuildMember } from "discord.js";
+import Config from './Config';
+import * as Constants from './Constants';
 
 /**
  * Get a collection of game roles for a guild
@@ -81,11 +82,28 @@ export const getGuildMember = (guild, user) => {
 }
 
 /**
- * 
+ * Get a random integer in a range
  * @param {number} min 
  * @param {number} max 
  * @returns {number}
  */
 export const getRandomInt = (min, max) => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Check whether or not a message is the new user message
+ * @param {Message} message 
+ * @returns {boolean}
+ */
+export const isNewMemberMessage = (message) => {
+    return message.embeds.findIndex(embed => embed.title === Constants.GUILD_MEMBER_WELCOME_MESSAGE_TITLE) > -1;
+}
+
+/**
+ * Check whether or not a user has recently joined the guild
+ * @param {GuildMember} member 
+ */
+export const isNewMember = (member) => {
+    return new Date().getUTCDate() < member.joinedAt.getUTCDate().setMinutes(member.joinedAt.getMinutes() + 5);
 }

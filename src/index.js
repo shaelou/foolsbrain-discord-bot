@@ -1,7 +1,10 @@
 import Discord from 'discord.js';
-import Config from './config';
-import Commands from './commands';
-import * as Utils from './utils';
+import Config from './Config';
+import Commands from './Commands';
+import * as Utils from './Utils';
+import * as Constants from './Constants';
+import * as MessageReactionService from './MessageReactionService';
+import * as PresenceUpdateService from './PresenceUpdateService';
 
 const client = new Discord.Client();
 
@@ -31,7 +34,7 @@ client.on('message', (message) => {
   try {
     switch (command) {
       case Commands.help.name:
-        let help_message = new Discord.RichEmbed().setTitle('Help');
+        let help_message = new Discord.RichEmbed().setTitle('Commands available');
 
         for (const key in Commands) {
           if (Commands.hasOwnProperty(key)) {
@@ -80,28 +83,30 @@ client.on('message', (message) => {
         const desired_roles_to_join = args.toString().split(',').filter((role) => { return role }); // filter empty spaces
         const roles_to_join = [];
 
+        const game_roles = Utils.getGameRoles(guild);
+
         desired_roles_to_join.forEach((desired_role) => {
           // check that role exists
-          const guild_role = guild.roles.filter(role => role.hexColor === Config.game_role_hex_color).find(r => r.name.toLowerCase() === desired_role.toLowerCase());
-          if (!guild_role) {
+          const game_role = game_roles.find(r => r.name.toLowerCase() === desired_role.toLowerCase());
+          if (!game_role) {
             message.channel.send(`The role '${desired_role}' does not exist`);
             return;
           }
 
           // check permissions
-          if (member.highestRole.comparePositionTo(guild_role) < 0) {
-            message.channel.send(`${member} has insufficient permissions to add role '${guild_role.name}'`);
+          if (member.highestRole.comparePositionTo(game_role) < 0) {
+            message.channel.send(`${member} has insufficient permissions to add role '${game_role.name}'`);
             return;
           }
 
-          roles_to_join.push(guild_role);
+          roles_to_join.push(game_role);
         });
 
         if (roles_to_join.length) {
           member.addRoles(roles_to_join).then(() => {
             message.channel.send(`Added ${member} to role(s): ${roles_to_join.map(role => role.name).join(', ')}`);
           }).catch((error) => {
-            message.channel.send(`Failed to add roles for ${member}. ${error}`);
+            message.channel.send(`Failed to add role(s) for ${member}. ${error}`);
           });
         }
 
@@ -111,28 +116,30 @@ client.on('message', (message) => {
         const desired_roles_to_leave = args.toString().split(',').filter((role) => { return role }); // filter empty spaces
         const roles_to_leave = [];
 
+        const game_roles = Utils.getGameRoles(guild);
+
         desired_roles_to_leave.forEach((desired_role) => {
           // check that role exists
-          const guild_role = guild.roles.filter(role => role.hexColor === Config.game_role_hex_color).find(r => r.name.toLowerCase() === desired_role.toLowerCase());
-          if (!guild_role) {
+          const game_role = game_roles.find(r => r.name.toLowerCase() === desired_role.toLowerCase());
+          if (!game_role) {
             message.channel.send(`The role '${desired_role}' does not exist`);
             return;
           }
 
-          roles_to_leave.push(guild_role);
+          roles_to_leave.push(game_role);
         });
 
         if (roles_to_leave.length) {
           member.removeRoles(roles_to_leave).then(() => {
             message.channel.send(`Removed role(s) for ${member}: ${roles_to_leave.map(role => role.name).join(', ')}`);
           }).catch((error) => {
-            message.channel.send(`Failed to remove roles for ${member}. ${error}`);
+            message.channel.send(`Failed to remove role(s) for ${member}. ${error}`);
           });
         }
 
         break;
 
-      case 'emojis':
+      case Commands.emojis.name:
         const emojis = Utils.getGameEmojis(guild);
         message.channel.send(`Available emojis are: ${emojis.map(emoji => emoji.name).join(', ')}`).catch((error) => {
           console.error(error);
@@ -156,34 +163,7 @@ client.on('message', (message) => {
 
 client.on('messageReactionAdd', (message_reaction, user) => {
   try {
-    if (user.bot) {
-      return;
-    }
-
-    const guild = message_reaction.message.guild ? message_reaction.message.guild : client.guilds.first();
-    const member = guild.members.find(m => m.user.id === user.id);
-
-    if (!message_reaction.message.embeds.find(embed => embed.title.toLowerCase() === 'a new user has joined')) {
-      return;
-    }
-
-    const game_emoji = guild.emojis.find(emoji => emoji.id === message_reaction.emoji.id);
-    if (!game_emoji) {
-      return;
-    }
-
-    const game_role = guild.roles.find(role => role.hexColor === Config.game_role_hex_color && game_emoji.name.toLowerCase() === role.name.toLowerCase());
-    if (!game_role) {
-      return;
-    }
-
-    member.addRole(game_role).then(() => {
-      message_reaction.message.channel.send(`Added ${member} to role ${game_role.name}`).then((message) => {
-        setTimeout(() => { message.delete() }, 2000);
-      });
-    }).catch((error) => {
-      message_reaction.message.channel.send(`Failed to add role ${game_role.name}. ${error}`);
-    });
+    MessageReactionService.handleMessageReaction(message_reaction, user, true);
   }
   catch (e) {
     console.error(e.stack);
@@ -192,34 +172,7 @@ client.on('messageReactionAdd', (message_reaction, user) => {
 
 client.on('messageReactionRemove', (message_reaction, user) => {
   try {
-    if (user.bot) {
-      return;
-    }
-
-    const guild = message_reaction.message.guild ? message_reaction.message.guild : client.guilds.first();
-    const member = guild.members.find(m => m.user.id === user.id);
-
-    if (!message_reaction.message.embeds.find(embed => embed.title.toLowerCase() === 'a new user has joined')) {
-      return;
-    }
-
-    const game_emoji = guild.emojis.find(emoji => emoji.id === message_reaction.emoji.id);
-    if (!game_emoji) {
-      return;
-    }
-
-    const game_role = guild.roles.find(role => role.hexColor === Config.game_role_hex_color && game_emoji.name.toLowerCase() === role.name.toLowerCase());
-    if (!game_role) {
-      return;
-    }
-
-    member.removeRole(game_role).then(() => {
-      message_reaction.message.channel.send(`Removed role ${game_role.name} for ${member}`).then((message) => {
-        setTimeout(() => { message.delete() }, 2000);
-      });
-    }).catch((error) => {
-      message_reaction.message.channel.send(`Failed to remove role ${game_role.name} for ${member}. ${error}`);
-    });
+    MessageReactionService.handleMessageReaction(message_reaction, user, false);
   }
   catch (e) {
     console.error(e.stack);
@@ -232,7 +185,7 @@ client.on('guildMemberAdd', (guild_member) => {
     const welcome_channel = Utils.getWelcomeChannel(guild_member.guild);
 
     const welcome_message = new Discord.RichEmbed()
-      .setTitle('A new user has joined')
+      .setTitle(Constants.GUILD_MEMBER_WELCOME_MESSAGE_TITLE)
       .setDescription(`${guild_member} has joined the guild`)
       .setThumbnail(guild_member.user.displayAvatarURL)
       .setTimestamp();
@@ -250,16 +203,7 @@ client.on('guildMemberAdd', (guild_member) => {
 
 client.on('presenceUpdate', (old_member, new_member) => {
   try {
-    // when a guild member is added it also triggers a presence update of offline to online - ensure it is not a new member joining by checking the time
-    if (new Date() < old_member.joinedAt.setMinutes(old_member.joinedAt.getMinutes() + 5)) {
-      console.log(`Ignoring presence update of ${old_member.user.tag} due to recently joining the guild`);
-      return;
-    }
-
-    if (old_member.presence.status === 'offline' && new_member.presence.status === 'online') {
-      const channel = new_member.guild.channels.find(c => c.name.toLowerCase() === Config.default_channel);
-      channel.send(`Welcome back from being ${old_member.presence.status} ${new_member}`);
-    }
+    PresenceUpdateService.handlePresenceUpdated(old_member, new_member);
   }
   catch (e) {
     console.error(e.stack);

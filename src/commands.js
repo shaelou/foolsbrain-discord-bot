@@ -26,6 +26,10 @@ const commands = {
     removerole: {
         name: 'removerole',
         description: 'Remove yourself from a role'
+    },
+    emojis: {
+        name: 'emojis',
+        description: 'List game emojis available'
     }
 };
 
