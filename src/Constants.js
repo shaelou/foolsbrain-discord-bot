@@ -1,1 +1,0 @@
-export const GUILD_MEMBER_WELCOME_MESSAGE_TITLE = 'A new user has joined';
