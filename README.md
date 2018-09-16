@@ -16,3 +16,6 @@ Transpile and minify ES6 to **dist** directory.
 
 3. `test`    
 Run tests in `test` firectory.    
+
+4. `start`
+Run the app
