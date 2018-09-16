@@ -14,8 +14,8 @@
     "codeFrame": false
   },
   "rules": {
-    "linebreak-style": "error",
     "no-console": "off",
-    "no-useless-escape": "off"
+    "no-useless-escape": "off",
+    "no-unused-vars": "off"
   }
 }

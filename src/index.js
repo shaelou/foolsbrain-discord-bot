@@ -2,14 +2,17 @@ import Discord from 'discord.js';
 import Config from './Config';
 import Commands from './Commands';
 import * as Utils from './Utils';
-import * as Constants from './Constants';
 import * as MessageReactionService from './MessageReactionService';
+import * as GuildMemberService from './GuildMemberService';
+import * as Logger from './Logger';
 
 const client = new Discord.Client();
 
 client.on('ready', () => {
-  console.log('Bot started!');
-  client.user.setStatus('dnd').catch((error) => console.error(error));
+  Logger.log('Bot started!');
+  client.user.setStatus('dnd').catch((error) => Logger.error(error));
+
+  GuildMemberService.initRefreshInviteTask(client.guilds);
 
   // TODO: find channels that have pinned messages that bot should be parsing reactions for
   // client.guilds.first().channels.find(c => c.name.toLowerCase() === config.default_channel).fetchPinnedMessages();
@@ -32,7 +35,7 @@ client.on('message', (message) => {
 
   try {
     switch (command) {
-      case Commands.help.name:
+      case Commands.help.name: {
         let help_message = new Discord.RichEmbed().setTitle('Commands available');
 
         for (const key in Commands) {
@@ -42,43 +45,51 @@ client.on('message', (message) => {
         }
 
         message.author.send(help_message).catch((error) => {
-          console.error(error);
+          Logger.error(error);
         });
         break;
+      }
 
-      case Commands.ping.name:
+      case Commands.ping.name: {
         message.channel.send('Pinging...').then((ping_message) => {
           ping_message.edit(`Ping: ${Date.now() - ping_message.createdTimestamp}ms`);
         }).catch((error) => {
-          console.error(error);
+          Logger.error(error);
         });
-        break;
 
-      case Commands.roll.name:
+        break;
+      }
+
+      case Commands.roll.name: {
         const rolled_number = Utils.getRandomInt(1, 100); // TODO: parse user input min/max
 
         message.channel.send(`${member} rolled a ${rolled_number}`).catch((error) => {
-          console.error(error);
+          Logger.error(error);
         });
-        break;
 
-      case Commands.ranks.name:
+        break;
+      }
+
+      case Commands.ranks.name: {
         const ranks = Utils.getRanks(guild);
         const rank_names = ranks.map(rank => rank.name);
 
         message.channel.send(`Ranks available are: ${rank_names.join(', ')}`).catch((error) => {
-          console.error(error);
+          Logger.error(error);
         });
-        break;
 
-      case Commands.roles.name:
+        break;
+      }
+
+      case Commands.roles.name: {
         const roles = Utils.getGameRoles(guild);
         const role_names = roles.map(role => role.name);
 
         message.channel.send(`Roles available are: ${role_names.join(', ')}`);
         break;
+      }
 
-      case Commands.addrole.name:
+      case Commands.addrole.name: {
         const desired_roles_to_join = args.toString().split(',').filter((role) => { return role }); // filter empty spaces
         const roles_to_join = [];
 
@@ -110,16 +121,15 @@ client.on('message', (message) => {
         }
 
         break;
+      }
 
-      case Commands.removerole.name:
+      case Commands.removerole.name: {
         const desired_roles_to_leave = args.toString().split(',').filter((role) => { return role }); // filter empty spaces
         const roles_to_leave = [];
 
-        const game_roles = Utils.getGameRoles(guild);
-
         desired_roles_to_leave.forEach((desired_role) => {
           // check that role exists
-          const game_role = game_roles.find(r => r.name.toLowerCase() === desired_role.toLowerCase());
+          const game_role = Utils.getGameRoles(guild).find(r => r.name.toLowerCase() === desired_role.toLowerCase());
           if (!game_role) {
             message.channel.send(`The role '${desired_role}' does not exist`);
             return;
@@ -137,26 +147,44 @@ client.on('message', (message) => {
         }
 
         break;
+      }
 
-      case Commands.emojis.name:
+      case Commands.emojis.name: {
         const emojis = Utils.getGameEmojis(guild);
-        message.channel.send(`Available emojis are: ${emojis.map(emoji => emoji.name).join(', ')}`).catch((error) => {
-          console.error(error);
-        });
-        break;
 
-      default:
-        message.channel.send(`Unknown command '${command}'. Try ${Config.command_prefix}help`).catch((error) => {
-          console.error(error);
+        message.channel.send(`Available emojis are: ${emojis.map(emoji => emoji.name).join(', ')}`).catch((error) => {
+          Logger.error(error);
         });
+
         break;
+      }
+
+      case Commands.invites.name: {
+        const guilds = Utils.getGuildsFromUser(message.author);
+
+        message.channel.send(`Refreshing invites for guild(s): ${guilds.map(g => g.name).join(', ')}`).catch((error) => {
+          Logger.error(error);
+        });
+
+        GuildMemberService.refreshInvites(guilds);
+
+        break;
+      }
+
+      default: {
+        message.channel.send(`Unknown command '${command}'. Try ${Config.command_prefix}help`).catch((error) => {
+          Logger.error(error);
+        });
+
+        break;
+      }
     }
   }
   catch (e) {
-    console.error(e.stack);
+    Logger.error(e);
   }
   finally {
-    console.log(`${message.author.tag} used '${command}' command`);
+    Logger.log(`${message.author.tag} used '${command}' command`);
   }
 });
 
@@ -165,7 +193,7 @@ client.on('messageReactionAdd', (message_reaction, user) => {
     MessageReactionService.handleMessageReaction(message_reaction, user, true);
   }
   catch (e) {
-    console.error(e.stack);
+    Logger.error(e);
   }
 });
 
@@ -174,29 +202,25 @@ client.on('messageReactionRemove', (message_reaction, user) => {
     MessageReactionService.handleMessageReaction(message_reaction, user, false);
   }
   catch (e) {
-    console.error(e.stack);
+    Logger.error(e);
   }
 });
 
-client.on('guildMemberAdd', (guild_member) => {
+client.on('guildMemberAdd', (member) => {
   try {
-    const emojis = Utils.getGameEmojis(guild_member.guild);
-    const welcome_channel = Utils.getWelcomeChannel(guild_member.guild);
-
-    const welcome_message = new Discord.RichEmbed()
-      .setTitle(Constants.GUILD_MEMBER_WELCOME_MESSAGE_TITLE)
-      .setDescription(`${guild_member} has joined the guild`)
-      .setThumbnail(guild_member.user.displayAvatarURL)
-      .setTimestamp();
-
-    welcome_channel.send(welcome_message).then((message) => {
-      emojis.forEach((emoji) => {
-        message.react(emoji);
-      });
-    });
+    GuildMemberService.handleGuildMemberAdded(member);
   }
   catch (e) {
-    console.error(e.stack);
+    Logger.error(e);
+  }
+});
+
+client.on('guildMemberRemove', (member) => {
+  try {
+    GuildMemberService.handleGuildMemberRemoved(member);
+  }
+  catch (e) {
+    Logger.error(e);
   }
 });
 

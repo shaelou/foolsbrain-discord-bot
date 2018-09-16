@@ -1,4 +1,4 @@
-import { Guild, Collection, Role, Emoji, GuildChannel, Message, User, GuildMember } from "discord.js";
+import { Guild, Collection, Role, Emoji, GuildChannel, Message, User, GuildMember, TextChannel } from "discord.js";
 import Config from './Config';
 import * as Constants from './Constants';
 
@@ -44,7 +44,7 @@ export const getDefaultChannel = (guild) => {
 /**
  * Get the welcome channel of a guild
  * @param {Guild} guild 
- * @returns {GuildChannel}
+ * @returns {TextChannel}
  */
 export const getWelcomeChannel = (guild) => {
     let welcome_channel = guild.channels.find(channel => channel.name.toLowerCase() === Config.welcome_channel);
@@ -71,6 +71,15 @@ export const getGuildFromMessage = (message) => {
 
     return guild;
 }
+
+/**
+ * 
+ * @param {User} user 
+ * @returns {Collection<String, Guild>}
+ */
+export const getGuildsFromUser = (user) => {
+    return user.client.guilds.filter(guild => getGuildMember(guild, user));
+};
 
 /**
  * Get the guild member by a user id

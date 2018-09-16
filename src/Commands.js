@@ -30,6 +30,10 @@ const commands = {
     emojis: {
         name: 'emojis',
         description: 'List game emojis available'
+    },
+    invites: {
+        name: 'invites',
+        description: 'Update invites tracked by the bot'
     }
 };
 
