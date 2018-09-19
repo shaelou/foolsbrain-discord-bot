@@ -10,12 +10,14 @@ const client = new Discord.Client();
 
 client.on('ready', () => {
   Logger.log('Bot started!');
-  client.user.setStatus('dnd').catch((error) => Logger.error(error));
 
-  GuildMemberService.initRefreshInviteTask(client.guilds);
-
-  // TODO: find channels that have pinned messages that bot should be parsing reactions for
-  // client.guilds.first().channels.find(c => c.name.toLowerCase() === config.default_channel).fetchPinnedMessages();
+  try {
+    GuildMemberService.initRefreshInviteTask(client.guilds);
+    MessageReactionService.initPinnedRoleMessages(client.guilds);
+  }
+  catch (e) {
+    Logger.error(e);
+  }
 });
 
 client.on('message', (message) => {
@@ -30,10 +32,10 @@ client.on('message', (message) => {
   const args = message.content.slice(Config.command_prefix.length).trim().split(' ');
   const command = args.shift().toLowerCase();
 
-  const guild = Utils.getGuildFromMessage(message);
-  const member = Utils.getGuildMember(guild, message.author);
-
   try {
+    const guild = Utils.getGuildFromMessage(message);
+    const member = Utils.getGuildMember(guild, message.author);
+
     switch (command) {
       case Commands.help.name: {
         let help_message = new Discord.RichEmbed().setTitle('Commands available');
@@ -190,7 +192,7 @@ client.on('message', (message) => {
 
 client.on('messageReactionAdd', (message_reaction, user) => {
   try {
-    MessageReactionService.handleMessageReaction(message_reaction, user, true);
+    MessageReactionService.handleMessageReactionAdded(message_reaction, user);
   }
   catch (e) {
     Logger.error(e);
@@ -199,7 +201,7 @@ client.on('messageReactionAdd', (message_reaction, user) => {
 
 client.on('messageReactionRemove', (message_reaction, user) => {
   try {
-    MessageReactionService.handleMessageReaction(message_reaction, user, false);
+    MessageReactionService.handleMessageReactionRemoved(message_reaction, user);
   }
   catch (e) {
     Logger.error(e);

@@ -47,13 +47,28 @@ export const getDefaultChannel = (guild) => {
  * @returns {TextChannel}
  */
 export const getWelcomeChannel = (guild) => {
-    let welcome_channel = guild.channels.find(channel => channel.name.toLowerCase() === Config.welcome_channel);
+    let channel = guild.channels.find(channel => channel.name.toLowerCase() === Config.welcome_channel);
 
-    if (!welcome_channel) {
-        welcome_channel = getDefaultChannel(guild);
+    if (!channel) {
+        channel = getDefaultChannel(guild);
     }
 
-    return welcome_channel;
+    return channel;
+}
+
+/**
+ * Get the role channel of a guild
+ * @param {Guild} guild 
+ * @returns {TextChannel}
+ */
+export const getRoleChannel = (guild) => {
+    let channel = guild.channels.find(channel => channel.name.toLowerCase() === Config.role_channel);
+
+    if (!channel) {
+        channel = getDefaultChannel(guild);
+    }
+
+    return channel;
 }
 
 /**

@@ -1,5 +1,40 @@
 import { MessageReaction, User } from "discord.js";
 import * as Utils from './Utils';
+import * as Logger from './Logger';
+
+/**
+ * 
+ * @param {Collection<String, Guild>} guilds 
+ */
+export const initPinnedRoleMessages = (guilds) => {
+    // TODO: fetch pinned role message or create it if not exists
+    
+    // const guild = client.guilds.first();
+    // const channel = Utils.getRoleChannel(guild);
+    // channel.fetchPinnedMessages().then((message) => {
+
+    // }).catch((error) => {
+    //     Logger.error(error);
+    // });
+}
+
+/**
+ * Handles the event of a reaction on a message being added
+ * @param {MessageReaction} message_reaction 
+ * @param {User} user 
+ */
+export const handleMessageReactionAdded = (message_reaction, user) => {
+    handleMessageReaction(message_reaction, user, true);
+}
+
+/**
+ * Handles the event of a reaction on a message being removed
+ * @param {MessageReaction} message_reaction 
+ * @param {User} user 
+ */
+export const handleMessageReactionRemoved = (message_reaction, user) => {
+    handleMessageReaction(message_reaction, user, false);
+}
 
 /**
  * Handles the event of a reaction on a message being added or removed
@@ -7,7 +42,7 @@ import * as Utils from './Utils';
  * @param {User} user 
  * @param {boolean} added 
  */
-export const handleMessageReaction = (message_reaction, user, added) => {
+const handleMessageReaction = (message_reaction, user, added) => {
     if (user.bot) {
         return;
     }

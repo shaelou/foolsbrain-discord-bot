@@ -7,7 +7,7 @@ import * as Logger from './Logger';
  * A collection of guilds and their invites
  * @type {Collection<String, Collection<String, Invite>}
  */
-const invites = new Collection();
+const invites = new Collection(); // TODO: refactor to only retain minimal data necessary if this creates memory issues
 
 /**
  * Schedule a task to update the invites for each guild every so often
@@ -61,6 +61,7 @@ export const handleGuildMemberAdded = (member) => {
             .addField('Recruited by', recruiter ? recruiter : "Unknown")
             .setTimestamp();
 
+        // TODO: do not react to this message, only use the one posted to roles channel in MessageReactionService
         welcome_channel.send(welcome_message).then((message) => {
             const emojis = Utils.getGameEmojis(member.guild);
 
