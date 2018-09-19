@@ -12,8 +12,8 @@ client.on('ready', () => {
   Logger.log('Bot started!');
 
   try {
-    GuildMemberService.initRefreshInviteTask(client.guilds);
-    MessageReactionService.initPinnedRoleMessages(client.guilds);
+    GuildMemberService.initRefreshInviteTask(client);
+    MessageReactionService.initPinnedRoleMessages(client);
   }
   catch (e) {
     Logger.error(e);

@@ -1,21 +1,39 @@
-import { MessageReaction, User } from "discord.js";
+import { MessageReaction, User, Client, RichEmbed } from "discord.js";
 import * as Utils from './Utils';
 import * as Logger from './Logger';
+import * as Constants from './Constants';
 
 /**
- * 
- * @param {Collection<String, Guild>} guilds 
+ * Loads or creates a pinned message in the designated roles channel for the bot to manage reactions to add/remove roles
+ * @param {Client} client
  */
-export const initPinnedRoleMessages = (guilds) => {
-    // TODO: fetch pinned role message or create it if not exists
-    
-    // const guild = client.guilds.first();
-    // const channel = Utils.getRoleChannel(guild);
-    // channel.fetchPinnedMessages().then((message) => {
+export const initPinnedRoleMessages = (client) => {
+    client.guilds.forEach((guild) => {
+        const channel = Utils.getRoleChannel(guild);
+        channel.fetchPinnedMessages().then((messages) => {
+            const role_msg_exists = messages.some((message) => message.author.id === client.user.id && message.embeds.some((embed) => embed.title === Constants.ROLE_ASSIGN_MESSAGE_TITLE));
+            if (!role_msg_exists) {
+                const role_msg = new RichEmbed()
+                    .setTitle(Constants.ROLE_ASSIGN_MESSAGE_TITLE)
+                    .setDescription(`Click a reaction to add/remove yourself to a role`)
+                    .setTimestamp();
 
-    // }).catch((error) => {
-    //     Logger.error(error);
-    // });
+                channel.send(role_msg).then((message) => {
+                    message.pin();
+
+                    const emojis = Utils.getGameEmojis(guild);
+
+                    emojis.forEach((emoji) => {
+                        message.react(emoji);
+                    });
+                }).catch((error) => {
+                    Logger.error(error);
+                });
+            }
+        }).catch((error) => {
+            Logger.error(error);
+        });
+    });
 }
 
 /**
@@ -47,8 +65,8 @@ const handleMessageReaction = (message_reaction, user, added) => {
         return;
     }
 
-    if (Utils.isNewMemberMessage(message_reaction.message)) {
-        handleNewMemberMessageReaction(message_reaction, user, added);
+    if (Utils.isRoleAssignMessage(message_reaction.message)) {
+        handleRoleAssignMessageReaction(message_reaction, user, added);
     }
 }
 
@@ -58,7 +76,7 @@ const handleMessageReaction = (message_reaction, user, added) => {
  * @param {User} user 
  * @param {boolean} added
  */
-const handleNewMemberMessageReaction = (message_reaction, user, added) => {
+const handleRoleAssignMessageReaction = (message_reaction, user, added) => {
     const guild = Utils.getGuildFromMessage(message_reaction.message);
 
     const game_emojis = Utils.getGameEmojis(guild);

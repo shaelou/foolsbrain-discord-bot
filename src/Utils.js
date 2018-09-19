@@ -125,6 +125,15 @@ export const isNewMemberMessage = (message) => {
 }
 
 /**
+ * Check whether or not a message is the role assign message
+ * @param {Message} message 
+ * @returns {boolean}
+ */
+export const isRoleAssignMessage = (message) => {
+    return message.embeds.findIndex(embed => embed.title === Constants.ROLE_ASSIGN_MESSAGE_TITLE) > -1;
+}
+
+/**
  * Check whether or not a user has recently joined the guild
  * @param {GuildMember} member 
  */

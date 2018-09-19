@@ -1,4 +1,4 @@
-import Discord, { Guild, Collection, GuildMember, Invite } from "discord.js";
+import Discord, { Guild, Collection, GuildMember, Invite, Client } from "discord.js";
 import * as Utils from './Utils';
 import * as Constants from './Constants';
 import * as Logger from './Logger';
@@ -11,16 +11,16 @@ const invites = new Collection(); // TODO: refactor to only retain minimal data 
 
 /**
  * Schedule a task to update the invites for each guild every so often
- * @param {Collection<String, Guild>} guilds 
+ * @param {Client} client
  */
-export const initRefreshInviteTask = (guilds) => {
+export const initRefreshInviteTask = (client) => {
     // refresh once to initialize
-    refreshInvites(guilds);
+    refreshInvites(client.guilds);
 
     const one_minute_in_ms = 60 * 1000;
 
     setInterval(() => {
-        refreshInvites(guilds);
+        refreshInvites(client.guilds);
     }, 5 * one_minute_in_ms);
 };
 
@@ -54,21 +54,14 @@ export const handleGuildMemberAdded = (member) => {
 
         const welcome_channel = Utils.getWelcomeChannel(member.guild);
 
-        let welcome_message = new Discord.RichEmbed()
+        const welcome_message = new Discord.RichEmbed()
             .setTitle(Constants.GUILD_MEMBER_WELCOME_MESSAGE_TITLE)
             .setDescription(`${member} has joined the guild`)
             .setThumbnail(member.user.displayAvatarURL)
             .addField('Recruited by', recruiter ? recruiter : "Unknown")
             .setTimestamp();
 
-        // TODO: do not react to this message, only use the one posted to roles channel in MessageReactionService
-        welcome_channel.send(welcome_message).then((message) => {
-            const emojis = Utils.getGameEmojis(member.guild);
-
-            emojis.forEach((emoji) => {
-                message.react(emoji);
-            });
-        }).catch((error) => {
+        welcome_channel.send(welcome_message).catch((error) => {
             Logger.error(error);
         });
     }).catch((error) => {
