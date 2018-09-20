@@ -1,4 +1,4 @@
-import Discord from 'discord.js';
+import Discord, { RichEmbed } from 'discord.js';
 import Config from './Config';
 import Commands from './Commands';
 import * as Utils from './Utils';
@@ -38,11 +38,11 @@ client.on('message', (message) => {
 
     switch (command) {
       case Commands.help.name: {
-        let help_message = new Discord.RichEmbed().setTitle('Commands available');
+        const help_message = new Discord.RichEmbed().setTitle('Commands available');
 
         for (const key in Commands) {
           if (Commands.hasOwnProperty(key)) {
-            help_message = help_message.addField(`${Config.command_prefix}${Commands[key].name}`, Commands[key].description)
+            help_message.addField(`${Config.command_prefix}${Commands[key].name}`, Commands[key].description)
           }
         }
 
@@ -74,9 +74,16 @@ client.on('message', (message) => {
 
       case Commands.ranks.name: {
         const ranks = Utils.getRanks(guild);
-        const rank_names = ranks.map(rank => rank.name);
 
-        message.channel.send(`Ranks available are: ${rank_names.join(', ')}`).catch((error) => {
+        const rank_msg = new RichEmbed()
+          .setTitle("Ranks")
+          .setTimestamp();
+
+        ranks.forEach((rank) => {
+          rank_msg.addField(rank.name, `${rank.members.size} members`);
+        });
+
+        message.channel.send(rank_msg).catch((error) => {
           Logger.error(error);
         });
 
@@ -85,9 +92,21 @@ client.on('message', (message) => {
 
       case Commands.roles.name: {
         const roles = Utils.getGameRoles(guild);
-        const role_names = roles.map(role => role.name);
+        const emojis = Utils.getGameEmojis(guild);
 
-        message.channel.send(`Roles available are: ${role_names.join(', ')}`);
+        const role_msg = new RichEmbed()
+          .setTitle("Roles")
+          .setTimestamp();
+
+        roles.forEach((role) => {
+          const emoji = emojis.find(emoji => emoji.name.toLowerCase() === role.name.toLowerCase());
+          role_msg.addField(`${role.name}${emoji}`, `${role.members.size} members`);
+        });
+
+        message.channel.send(role_msg).catch((error) => {
+          Logger.error(error);
+        });
+
         break;
       }
 
@@ -154,6 +173,7 @@ client.on('message', (message) => {
       case Commands.emojis.name: {
         const emojis = Utils.getGameEmojis(guild);
 
+        // TODO: refactor to be a RichEmbed
         message.channel.send(`Available emojis are: ${emojis.map(emoji => emoji.name).join(', ')}`).catch((error) => {
           Logger.error(error);
         });

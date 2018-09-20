@@ -8,7 +8,11 @@ import * as Constants from './Constants';
  * @returns {Collection<String, Role}
  */
 export const getGameRoles = (guild) => {
-    return guild.roles.filter(role => role.hexColor === Config.game_role_hex_color);
+    const roles = guild.roles.filter(role => role.hexColor === Config.game_role_hex_color);
+
+    return roles.sort((role_a, role_b) => {
+        return role_a.members.size < role_b.members.size;
+    });
 }
 
 /**
@@ -17,7 +21,11 @@ export const getGameRoles = (guild) => {
  * @returns {Collection<String, Role}
  */
 export const getRanks = (guild) => {
-    return guild.roles.filter(role => role.hexColor != Config.game_role_hex_color);
+    const ranks = guild.roles.filter(role => role.hexColor != Config.game_role_hex_color);
+
+    return ranks.sort((rank_a, rank_b) => {
+        return rank_a.position < rank_b.position;
+    });
 }
 
 /**
