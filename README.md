@@ -9,13 +9,13 @@ Update packages
 ## Scripts
 
 `build`
-- Transpile ES6 to **build** directory.    
+- Transpile ES6 to **build** directory
 
 `dist`
-- Transpile and minify ES6 to **dist** directory.    
+- Transpile and minify ES6 to **dist** directory
 
 `test`
-- Run tests in `test` firectory.    
+- Run tests in `test` directory
 
 `start`
 - Run the app
