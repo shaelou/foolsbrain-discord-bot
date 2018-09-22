@@ -1,4 +1,4 @@
-import { RichEmbed, Client } from 'discord.js';
+import { RichEmbed, Client, Util } from 'discord.js';
 import Config from './Config';
 import Commands from './Commands';
 import * as Utils from './Utils';
@@ -198,7 +198,16 @@ client.on('message', (message) => {
       }
 
       default: {
-        message.channel.send(`Unknown command '${command}'. Try ${Config.command_prefix}help`).catch((error) => {
+        const invalid_cmd_msg = new RichEmbed()
+          .setTitle("Invalid Command")
+          .setDescription(`'${command}' is not a valid command. See '${Config.command_prefix}help'.`);
+
+        const similar_commands = Utils.getSimilarCommands(command);
+        if (similar_commands.length > 0) {
+          invalid_cmd_msg.addField("The most similar commands are", similar_commands.join(", "));
+        }
+
+        message.channel.send(invalid_cmd_msg).catch((error) => {
           Logger.error(error);
         });
 

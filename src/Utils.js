@@ -1,6 +1,8 @@
 import { Guild, Collection, Role, Emoji, GuildChannel, Message, User, GuildMember, TextChannel, ClientUser } from "discord.js";
+import * as StringSimilarity from 'string-similarity';
 import Config from './Config';
 import * as Constants from './Constants';
+import Commands from './Commands';
 
 /**
  * Get a collection of game roles for a guild
@@ -159,4 +161,32 @@ export const getAvatarUrl = (user) => {
     }
 
     return user.defaultAvatarURL;
+}
+
+/**
+ * Get the most similar commands for a given command
+ * @param {String} command 
+ */
+export const getSimilarCommands = (command) => {
+    const command_names = getCommandNames();
+    const best_match = StringSimilarity.findBestMatch(command, command_names);
+
+    return best_match.ratings.filter(rating => rating.rating > .6).map(rating => rating.target);
+}
+
+/**
+ * Get a list of command names sorted alphabetically
+ */
+export const getCommandNames = () => {
+    const command_names = [];
+
+    for (const key in Commands) {
+        if (Commands.hasOwnProperty(key)) {
+            command_names.push(key);
+        }
+    }
+
+    return command_names.sort((command_a, command_b) => {
+        return command_a < command_b;
+    });
 }
