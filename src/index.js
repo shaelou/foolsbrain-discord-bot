@@ -1,4 +1,4 @@
-import Discord, { RichEmbed } from 'discord.js';
+import { RichEmbed, Client } from 'discord.js';
 import Config from './Config';
 import Commands from './Commands';
 import * as Utils from './Utils';
@@ -6,7 +6,7 @@ import * as MessageReactionService from './MessageReactionService';
 import * as GuildMemberService from './GuildMemberService';
 import * as Logger from './Logger';
 
-const client = new Discord.Client();
+const client = new Client();
 
 client.on('ready', () => {
   Logger.log('Bot started!');
@@ -38,7 +38,7 @@ client.on('message', (message) => {
 
     switch (command) {
       case Commands.help.name: {
-        const help_message = new Discord.RichEmbed().setTitle('Commands available');
+        const help_message = new RichEmbed().setTitle('Commands available');
 
         for (const key in Commands) {
           if (Commands.hasOwnProperty(key)) {
@@ -76,8 +76,7 @@ client.on('message', (message) => {
         const ranks = Utils.getRanks(guild);
 
         const rank_msg = new RichEmbed()
-          .setTitle("Ranks")
-          .setTimestamp();
+          .setTitle("Ranks");
 
         ranks.forEach((rank) => {
           rank_msg.addField(rank.name, `${rank.members.size} members`);
@@ -95,8 +94,7 @@ client.on('message', (message) => {
         const emojis = Utils.getGameEmojis(guild);
 
         const role_msg = new RichEmbed()
-          .setTitle("Roles")
-          .setTimestamp();
+          .setTitle("Roles");
 
         roles.forEach((role) => {
           const emoji = emojis.find(emoji => emoji.name.toLowerCase() === role.name.toLowerCase());
@@ -173,8 +171,14 @@ client.on('message', (message) => {
       case Commands.emojis.name: {
         const emojis = Utils.getGameEmojis(guild);
 
-        // TODO: refactor to be a RichEmbed
-        message.channel.send(`Available emojis are: ${emojis.map(emoji => emoji.name).join(', ')}`).catch((error) => {
+        const emoji_msg = new RichEmbed()
+          .setTitle("Emojis");
+
+        emojis.forEach((emoji) => {
+          emoji_msg.addField(`:${emoji.name}:`, emoji, true);
+        });
+
+        message.channel.send(emoji_msg).catch((error) => {
           Logger.error(error);
         });
 

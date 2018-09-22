@@ -57,7 +57,7 @@ export const handleGuildMemberAdded = (member) => {
         const welcome_message = new Discord.RichEmbed()
             .setTitle(Constants.GUILD_MEMBER_WELCOME_MESSAGE_TITLE)
             .setDescription(`${member} has joined the guild`)
-            .setThumbnail(member.user.displayAvatarURL)
+            .setThumbnail(Utils.getAvatarUrl(member.user))
             .addField('Recruited by', recruiter ? recruiter : "Unknown")
             .setTimestamp();
 

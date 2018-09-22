@@ -1,4 +1,4 @@
-import { Guild, Collection, Role, Emoji, GuildChannel, Message, User, GuildMember, TextChannel } from "discord.js";
+import { Guild, Collection, Role, Emoji, GuildChannel, Message, User, GuildMember, TextChannel, ClientUser } from "discord.js";
 import Config from './Config';
 import * as Constants from './Constants';
 
@@ -147,4 +147,16 @@ export const isRoleAssignMessage = (message) => {
  */
 export const isNewMember = (member) => {
     return new Date().getUTCDate() < member.joinedAt.getUTCDate().setMinutes(member.joinedAt.getMinutes() + 5);
+}
+
+/**
+ * Get the avatar url of a user
+ * @param {ClientUser} user 
+ */
+export const getAvatarUrl = (user) => {
+    if (user.displayAvatarURL) {
+        return user.displayAvatarURL;
+    }
+
+    return user.defaultAvatarURL;
 }

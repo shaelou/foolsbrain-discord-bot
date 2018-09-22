@@ -15,11 +15,12 @@ export const initPinnedRoleMessages = (client) => {
             if (!role_msg_exists) {
                 const role_msg = new RichEmbed()
                     .setTitle(Constants.ROLE_ASSIGN_MESSAGE_TITLE)
-                    .setDescription(`Click a reaction to add/remove yourself to a role`)
-                    .setTimestamp();
+                    .setDescription(`Click a reaction to add/remove yourself to a role`);
 
                 channel.send(role_msg).then((message) => {
-                    message.pin();
+                    message.pin().catch((error) => {
+                        Logger.error(error);
+                    });
 
                     const emojis = Utils.getGameEmojis(guild);
 
