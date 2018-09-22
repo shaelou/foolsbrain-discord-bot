@@ -13,9 +13,10 @@ export const initPinnedRoleMessages = (client) => {
         channel.fetchPinnedMessages().then((messages) => {
             const role_msg_exists = messages.some((message) => message.author.id === client.user.id && message.embeds.some((embed) => embed.title === Constants.ROLE_ASSIGN_MESSAGE_TITLE));
             if (!role_msg_exists) {
-                const role_msg = new RichEmbed()
-                    .setTitle(Constants.ROLE_ASSIGN_MESSAGE_TITLE)
-                    .setDescription(`Click a reaction to add/remove yourself to a role`);
+                const role_msg = new RichEmbed({
+                    title: Constants.ROLE_ASSIGN_MESSAGE_TITLE,
+                    description: "Click a reaction to add/remove yourself to a role"
+                });
 
                 channel.send(role_msg).then((message) => {
                     message.pin().catch((error) => {

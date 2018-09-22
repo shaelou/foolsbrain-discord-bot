@@ -1,4 +1,4 @@
-import { RichEmbed, Client, Util } from 'discord.js';
+import { RichEmbed, Client } from 'discord.js';
 import Config from './Config';
 import Commands from './Commands';
 import * as Utils from './Utils';
@@ -38,7 +38,7 @@ client.on('message', (message) => {
 
     switch (command) {
       case Commands.help.name: {
-        const help_message = new RichEmbed().setTitle('Commands available');
+        const help_message = new RichEmbed({ title: "Commands Available" });
 
         for (const key in Commands) {
           if (Commands.hasOwnProperty(key)) {
@@ -75,8 +75,7 @@ client.on('message', (message) => {
       case Commands.ranks.name: {
         const ranks = Utils.getRanks(guild);
 
-        const rank_msg = new RichEmbed()
-          .setTitle("Ranks");
+        const rank_msg = new RichEmbed({ title: "Ranks" });
 
         ranks.forEach((rank) => {
           rank_msg.addField(rank.name, `${rank.members.size} members`);
@@ -93,8 +92,7 @@ client.on('message', (message) => {
         const roles = Utils.getGameRoles(guild);
         const emojis = Utils.getGameEmojis(guild);
 
-        const role_msg = new RichEmbed()
-          .setTitle("Roles");
+        const role_msg = new RichEmbed({ title: "Roles" });
 
         roles.forEach((role) => {
           const emoji = emojis.find(emoji => emoji.name.toLowerCase() === role.name.toLowerCase());
@@ -171,8 +169,7 @@ client.on('message', (message) => {
       case Commands.emojis.name: {
         const emojis = Utils.getGameEmojis(guild);
 
-        const emoji_msg = new RichEmbed()
-          .setTitle("Emojis");
+        const emoji_msg = new RichEmbed({ title: "Emojis" });
 
         emojis.forEach((emoji) => {
           emoji_msg.addField(`:${emoji.name}:`, emoji, true);
@@ -188,7 +185,10 @@ client.on('message', (message) => {
       case Commands.invites.name: {
         const guilds = Utils.getGuildsFromUser(message.author);
 
-        message.channel.send(`Refreshing invites for guild(s): ${guilds.map(g => g.name).join(', ')}`).catch((error) => {
+        const refresh_invites_msg = new RichEmbed({ title: "Refreshing Invites" });
+        refresh_invites_msg.addField("Guilds", guilds.map(g => g.name).join(", "));
+
+        message.channel.send(refresh_invites_msg).catch((error) => {
           Logger.error(error);
         });
 
@@ -198,9 +198,10 @@ client.on('message', (message) => {
       }
 
       default: {
-        const invalid_cmd_msg = new RichEmbed()
-          .setTitle("Invalid Command")
-          .setDescription(`'${command}' is not a valid command. See '${Config.command_prefix}help'.`);
+        const invalid_cmd_msg = new RichEmbed({
+          title: "Invalid Command",
+          description: `'${command}' is not a valid command. See '${Config.command_prefix}help'.`
+        });
 
         const similar_commands = Utils.getSimilarCommands(command);
         if (similar_commands.length > 0) {

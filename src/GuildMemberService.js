@@ -1,4 +1,4 @@
-import Discord, { Guild, Collection, GuildMember, Invite, Client } from "discord.js";
+import { Guild, Collection, GuildMember, Invite, Client, RichEmbed } from "discord.js";
 import * as Utils from './Utils';
 import * as Constants from './Constants';
 import * as Logger from './Logger';
@@ -21,7 +21,7 @@ export const initRefreshInviteTask = (client) => {
 
     setInterval(() => {
         refreshInvites(client.guilds);
-    }, 5 * one_minute_in_ms);
+    }, one_minute_in_ms);
 };
 
 /**
@@ -54,12 +54,16 @@ export const handleGuildMemberAdded = (member) => {
 
         const welcome_channel = Utils.getWelcomeChannel(member.guild);
 
-        const welcome_message = new Discord.RichEmbed()
-            .setTitle(Constants.GUILD_MEMBER_WELCOME_MESSAGE_TITLE)
-            .setDescription(`${member} has joined the guild`)
-            .setThumbnail(Utils.getAvatarUrl(member.user))
-            .addField('Recruited by', recruiter ? recruiter : "Unknown")
-            .setTimestamp();
+        const welcome_message = new RichEmbed({
+            title: Constants.GUILD_MEMBER_WELCOME_MESSAGE_TITLE,
+            description: `${member} has joined the guild`,
+            thumbnail: Utils.getAvatarUrl(member.user),
+            timestamp: new Date(),
+            fields: [{
+                name: "Recruited by",
+                value: recruiter ? recruiter : "Unknown"
+            }]
+        });
 
         welcome_channel.send(welcome_message).catch((error) => {
             Logger.error(error);
