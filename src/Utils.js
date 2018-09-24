@@ -190,3 +190,11 @@ export const getCommandNames = () => {
         return command_a < command_b;
     });
 }
+
+/**
+ * Check whether or not a message is a command
+ * @param {Message} message 
+ */
+export const isCommand = (message) => {
+    return message.content.startsWith(Config.command_prefix);
+}
