@@ -134,7 +134,7 @@ const handlePingCommand = (message) => {
 const handleRollCommand = (message) => {
     const rolled_number = Utils.getRandomInt(1, 100); // TODO: parse user input min/max
 
-    message.channel.send(`${message.member} rolled a ${rolled_number}`).catch((error) => {
+    message.channel.send(`${message.author} rolled a ${rolled_number}`).catch((error) => {
         Logger.error(error);
     });
 }
