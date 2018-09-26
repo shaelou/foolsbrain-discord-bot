@@ -6,7 +6,7 @@ import * as GuildMemberService from './GuildMemberService';
 import * as Logger from './Logger';
 
 /**
- * Get arguments from a message
+ * Get command arguments from a message
  * @param {Message} message 
  */
 const getArgs = (message) => {
@@ -14,7 +14,7 @@ const getArgs = (message) => {
 }
 
 /**
- * Handles command messages
+ * Get a command from a message
  * @param {Message} message 
  */
 const getCommand = (message) => {
