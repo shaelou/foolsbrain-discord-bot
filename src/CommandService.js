@@ -6,6 +6,23 @@ import * as GuildMemberService from './GuildMemberService';
 import * as Logger from './Logger';
 
 /**
+ * Get arguments from a message
+ * @param {Message} message 
+ */
+const getArgs = (message) => {
+    return message.content.slice(Config.command_prefix.length).trim().split(' ');
+}
+
+/**
+ * Handles command messages
+ * @param {Message} message 
+ */
+const getCommand = (message) => {
+    const args = getArgs(message);
+    return args.shift().toLowerCase();
+}
+
+/**
  * Handles command messages
  * @param {Message} message 
  */
@@ -14,8 +31,7 @@ export const handleCommand = (message) => {
         return;
     }
 
-    const args = message.content.slice(Config.command_prefix.length).trim().split(' ');
-    const command = args.shift().toLowerCase();
+    const command = getCommand(message);
 
     Logger.log(`${message.author.tag} used '${command}' command`);
 
@@ -77,8 +93,7 @@ export const handleCommand = (message) => {
  * @param {Message} message 
  */
 const handleUnrecognizedCommand = (message) => {
-    const args = message.content.slice(Config.command_prefix.length).trim().split(' ');
-    const command = args.shift().toLowerCase();
+    const command = getCommand(message);
 
     const invalid_cmd_msg = new RichEmbed({
         title: "Invalid Command",
@@ -223,7 +238,7 @@ const handleAddRoleCommand = (message) => {
     const guild = Utils.getGuildFromMessage(message);
     const member = Utils.getGuildMember(guild, message.author);
 
-    const args = message.content.slice(Config.command_prefix.length).trim().split(' ');
+    const args = getArgs(message);
 
     const desired_roles_to_join = args.toString().split(',').filter((role) => { return role }); // filter empty spaces
     const roles_to_join = [];
@@ -264,7 +279,7 @@ const handleRemoveRoleCommand = (message) => {
     const guild = Utils.getGuildFromMessage(message);
     const member = Utils.getGuildMember(guild, message.author);
 
-    const args = message.content.slice(Config.command_prefix.length).trim().split(' ');
+    const args = getArgs(message);
 
     const desired_roles_to_leave = args.toString().split(',').filter((role) => { return role }); // filter empty spaces
     const roles_to_leave = [];
