@@ -10,7 +10,9 @@ import * as Logger from './Logger';
  * @param {Message} message 
  */
 const getArgs = (message) => {
-    return message.content.slice(Config.command_prefix.length).trim().split(' ');
+    const args = message.content.slice(Config.command_prefix.length).trim().split(' ');
+    args.shift(); // remove command from args
+    return args;
 }
 
 /**
@@ -18,8 +20,7 @@ const getArgs = (message) => {
  * @param {Message} message 
  */
 const getCommand = (message) => {
-    const args = getArgs(message);
-    return args.shift().toLowerCase();
+    return message.content.slice(Config.command_prefix.length).trim().split(' ').shift().toLowerCase();
 }
 
 /**
@@ -133,8 +134,10 @@ const handleHelpCommand = (message) => {
  * @param {Message} message 
  */
 const handlePingCommand = (message) => {
-    message.channel.send('Pinging...').then((ping_message) => {
-        ping_message.edit(`Ping: ${Date.now() - ping_message.createdTimestamp}ms`).catch((error) => {
+    const pinging_msg = new RichEmbed({ title: 'Pinging', description: '...' });
+    message.channel.send(pinging_msg).then((ping_message) => {
+        const pinged_msg = new RichEmbed({ title: 'Ping', description: `${Date.now() - ping_message.createdTimestamp}ms` });
+        ping_message.edit(pinged_msg).catch((error) => {
             Logger.error(error);
         });
     }).catch((error) => {
@@ -147,9 +150,13 @@ const handlePingCommand = (message) => {
  * @param {Message} message 
  */
 const handleRollCommand = (message) => {
-    const rolled_number = Utils.getRandomInt(1, 100); // TODO: parse user input min/max
+    // TODO: parse user input min/max
+    const min = 1;
+    const max = 100;
+    const rolled_number = Utils.getRandomInt(min, max);
 
-    message.channel.send(`${message.author} rolled a ${rolled_number}`).catch((error) => {
+    const msg = new RichEmbed({ title: 'Roll', description: `${message.author} rolled a ${rolled_number} out of ${max}` });
+    message.channel.send(msg).catch((error) => {
         Logger.error(error);
     });
 }
@@ -180,13 +187,11 @@ const handleRanksCommand = (message) => {
 const handleRolesCommand = (message) => {
     const guild = Utils.getGuildFromMessage(message);
     const roles = Utils.getGameRoles(guild);
-    const emojis = Utils.getGameEmojis(guild);
 
     const role_msg = new RichEmbed({ title: "Roles" });
 
     roles.forEach((role) => {
-        const emoji = emojis.find(emoji => emoji.name.toLowerCase() === role.name.toLowerCase());
-        role_msg.addField(`${role.name}${emoji}`, `${role.members.size} members`);
+        role_msg.addField(`${role.name}`, `${role.members.size} members`);
     });
 
     message.channel.send(role_msg).catch((error) => {
@@ -220,8 +225,7 @@ const handleEmojisCommand = (message) => {
 const handleInvitesCommand = (message) => {
     const guilds = Utils.getGuildsFromUser(message.author);
 
-    const refresh_invites_msg = new RichEmbed({ title: "Refreshing Invites" });
-    refresh_invites_msg.addField("Guilds", guilds.map(g => g.name).join(", "));
+    const refresh_invites_msg = new RichEmbed({ title: "Refreshing Invites", description: guilds.map(g => g.name).join(", ") });
 
     message.channel.send(refresh_invites_msg).catch((error) => {
         Logger.error(error);
