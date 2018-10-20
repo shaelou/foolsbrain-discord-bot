@@ -35,7 +35,7 @@ export const handleCommand = (message) => {
 
     const command = getCommand(message);
 
-    Logger.log(`${message.author.tag} used '${command}' command in ${message.channel.name}`);
+    Logger.log(`${message.author.tag} used '${command}' command in ${message.channel.name ? message.channel.name : 'a DM'}`);
 
     switch (command) {
         case Commands.help.name: {
@@ -153,9 +153,10 @@ const handlePingCommand = (message) => {
  * @param {Message} message 
  */
 const handleRollCommand = (message) => {
-    // TODO: parse user input min/max
+    const args = getArgs(message).toString().replace(/[^0-9]/g, "");
+
     const min = 1;
-    const max = 100;
+    const max = Utils.tryParseInt(args, 100);
     const rolled_number = Utils.getRandomInt(min, max);
 
     const msg = new RichEmbed({ title: 'Roll', description: `${message.author} rolled a ${rolled_number} out of ${max}` });

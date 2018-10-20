@@ -2,6 +2,7 @@ import { Guild, Collection, Role, Emoji, GuildChannel, Message, User, GuildMembe
 import * as StringSimilarity from 'string-similarity';
 import Config from './Config';
 import * as Constants from './Constants';
+import * as Logger from './Logger';
 import Commands from './Commands';
 
 /**
@@ -226,3 +227,22 @@ export const getCommandNames = () => {
 export const isCommand = (message) => {
     return message.content.startsWith(Config.command_prefix);
 }
+
+/**
+ * Try to parse an int from a string
+ * @param {string} value 
+ * @param {number} defaultValue 
+ */
+export const tryParseInt = (value, defaultValue) => {
+    try {
+        const intValue = parseInt(value);
+        if (Number.isInteger(intValue)) {
+            return intValue;
+        }
+    }
+    catch (e) {
+        Logger.error(e);
+    }
+
+    return defaultValue;
+};

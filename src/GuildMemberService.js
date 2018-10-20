@@ -8,7 +8,7 @@ import * as Logger from './Logger';
  * A collection of guilds and their invites
  * @type {Collection<String, Collection<String, Invite>}
  */
-const invites = new Collection(); // TODO: refactor to only retain minimal data necessary if this creates memory issues
+const invites = new Collection(); // refactor to only retain minimal data necessary if this creates memory issues
 
 /**
  * Schedule a task to update the invites for each guild every so often
