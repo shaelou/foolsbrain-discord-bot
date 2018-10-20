@@ -17,5 +17,14 @@ Update packages
 `test`
 - Run tests in `test` directory
 
+`debug`
+- Run the app in the console
+
 `start`
-- Run the app
+- Start the app as a service
+
+`stop`
+- Stop the app running as a service
+
+`restart`
+- Restart the app running as a service

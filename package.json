@@ -8,7 +8,12 @@
     "build": "./node_modules/.bin/babel src -d build",
     "dist": "./node_modules/.bin/babel src -d dist --presets=babili",
     "test": "./node_modules/.bin/mocha --compilers js:babel-core/register --reporter spec",
-    "start": "npm run build && node build/index.js"
+    "debug": "npm run build && node build/index.js",
+    "start": "npm run build && npm run forever",
+    "forever": "./node_modules/.bin/forever start build/index.js",
+    "list": "./node_modules/.bin/forever list",
+    "stop": "./node_modules/.bin/forever stopall",
+    "restart": "./node_modules/.bin/forever restartall"
   },
   "repository": {
     "type": "git",
@@ -33,6 +38,7 @@
     "babel-preset-es2015-node": "^6.1.1",
     "babili": "^0.1.3",
     "eslint": "^4.0.0",
+    "forever": "^0.15.3",
     "mocha": "^5.2.0",
     "power-assert": "^1.4.4"
   }
