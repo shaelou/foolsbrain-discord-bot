@@ -31,6 +31,19 @@ export const getRanks = (guild) => {
 }
 
 /**
+ * Get a collection of new member rank roles for a guild
+ * @param {Guild} guild 
+ * @returns {Collection<String, Role}
+ */
+export const getNewMemberRanks = (guild) => {
+    const ranks = guild.roles.filter(role => Config.new_member_role_hex_colors.indexOf(role.hexColor) > -1);
+
+    return ranks.sort((rank_a, rank_b) => {
+        return rank_a.position < rank_b.position;
+    });
+}
+
+/**
  * Get a collection of emojis for game roles of a guild
  * @param {Guild} guild 
  * @returns {Collection<String, Emoji}
@@ -73,6 +86,21 @@ export const getWelcomeChannel = (guild) => {
  */
 export const getRoleChannel = (guild) => {
     let channel = guild.channels.find(channel => channel.name.toLowerCase() === Config.role_channel);
+
+    if (!channel) {
+        channel = getDefaultChannel(guild);
+    }
+
+    return channel;
+}
+
+/**
+ * Get the audit channel of a guild
+ * @param {Guild} guild 
+ * @returns {TextChannel}
+ */
+export const getAuditChannel = (guild) => {
+    let channel = guild.channels.find(channel => channel.name.toLowerCase() === Config.audit_channel);
 
     if (!channel) {
         channel = getDefaultChannel(guild);

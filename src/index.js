@@ -4,6 +4,7 @@ import * as Utils from './Utils';
 import * as MessageReactionService from './MessageReactionService';
 import * as GuildMemberService from './GuildMemberService';
 import * as CommandService from './CommandService';
+import * as AuditService from './AuditService';
 import * as Logger from './Logger';
 
 const client = new Client();
@@ -25,6 +26,15 @@ client.on('message', (message) => {
     if (Utils.isCommand(message)) {
       CommandService.handleCommand(message);
     }
+  }
+  catch (e) {
+    Logger.error(e);
+  }
+});
+
+client.on('messageDelete', (message) => {
+  try {
+    AuditService.onMessageDeleted(message);
   }
   catch (e) {
     Logger.error(e);
@@ -61,6 +71,15 @@ client.on('guildMemberAdd', (member) => {
 client.on('guildMemberRemove', (member) => {
   try {
     GuildMemberService.handleGuildMemberRemoved(member);
+  }
+  catch (e) {
+    Logger.error(e);
+  }
+});
+
+client.on('guildBanAdd', (guild, user) => {
+  try {
+    GuildMemberService.handleUserBanned(guild, user);
   }
   catch (e) {
     Logger.error(e);

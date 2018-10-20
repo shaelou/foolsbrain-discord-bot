@@ -1,6 +1,7 @@
-import { Guild, Collection, GuildMember, Invite, Client, RichEmbed } from "discord.js";
+import { Guild, Collection, GuildMember, Invite, Client, RichEmbed, User } from "discord.js";
 import * as Utils from './Utils';
 import * as Constants from './Constants';
+import * as AuditService from './AuditService';
 import * as Logger from './Logger';
 
 /**
@@ -47,7 +48,7 @@ export const refreshInvites = (guilds) => {
 export const handleGuildMemberAdded = (member) => {
     member.guild.fetchInvites().then((fetched_invites) => {
         const previous_invites = invites.get(member.guild.id);
-        const invite = fetched_invites.find(i => previous_invites && previous_invites.get(i.code).uses < i.uses);
+        const invite = fetched_invites.find(i => previous_invites && previous_invites.get(i.code) && previous_invites.get(i.code).uses < i.uses);
         const recruiter = member.guild.members.find(m => invite && m.user.id === invite.inviter.id);
 
         invites.set(member.guild.id, fetched_invites);
@@ -59,15 +60,23 @@ export const handleGuildMemberAdded = (member) => {
             description: `${member} has joined the guild`,
             thumbnail: Utils.getAvatarUrl(member.user),
             timestamp: new Date(),
-            fields: [{
-                name: "Recruited by",
-                value: recruiter ? recruiter : "Unknown"
-            }]
+            color: Constants.GREEN
         });
+
+        if (recruiter) {
+            welcome_message.addField("Recruited by", recruiter);
+        }
 
         welcome_channel.send(welcome_message).catch((error) => {
             Logger.error(error);
         });
+
+        const newMemberRoles = Utils.getNewMemberRanks(member.guild);
+        if (newMemberRoles) {
+            member.addRoles(newMemberRoles).catch((error) => {
+                Logger.error(error);
+            });
+        }
     }).catch((error) => {
         Logger.error(error);
     });
@@ -78,6 +87,16 @@ export const handleGuildMemberAdded = (member) => {
  * @param {GuildMember} member 
  */
 export const handleGuildMemberRemoved = (member) => {
-    const guilds = new Collection([[member.guild.id, member.guild]]);
-    refreshInvites(guilds);
+    refreshInvites(new Collection([[member.guild.id, member.guild]]));
+
+    AuditService.onGuildMemberRemoved(member);
+};
+
+/**
+ * Handles when a user is banned from a guild
+ * @param {Guild} guild 
+ * @param {User} user 
+ */
+export const handleUserBanned = (guild, user) => {
+    AuditService.onUserBanned(guild, user);
 };

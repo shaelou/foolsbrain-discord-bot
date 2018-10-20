@@ -4,6 +4,7 @@ import Commands from './Commands';
 import * as Utils from './Utils';
 import * as GuildMemberService from './GuildMemberService';
 import * as Logger from './Logger';
+import * as Constants from './Constants';
 
 /**
  * Get command arguments from a message
@@ -34,7 +35,7 @@ export const handleCommand = (message) => {
 
     const command = getCommand(message);
 
-    Logger.log(`${message.author.tag} used '${command}' command`);
+    Logger.log(`${message.author.tag} used '${command}' command in ${message.channel.name}`);
 
     switch (command) {
         case Commands.help.name: {
@@ -136,7 +137,9 @@ const handleHelpCommand = (message) => {
 const handlePingCommand = (message) => {
     const pinging_msg = new RichEmbed({ title: 'Pinging', description: '...' });
     message.channel.send(pinging_msg).then((ping_message) => {
-        const pinged_msg = new RichEmbed({ title: 'Ping', description: `${Date.now() - ping_message.createdTimestamp}ms` });
+        const ping_time = Date.now() - ping_message.createdTimestamp;
+        const ping_color = ping_time <= 300 ? Constants.GREEN : ping_time >= 500 ? Constants.DARK_RED : Constants.YELLOW;
+        const pinged_msg = new RichEmbed({ title: 'Ping', description: `${Date.now() - ping_message.createdTimestamp}ms`, color: ping_color });
         ping_message.edit(pinged_msg).catch((error) => {
             Logger.error(error);
         });
